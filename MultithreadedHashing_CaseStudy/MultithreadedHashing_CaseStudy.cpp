@@ -18,7 +18,7 @@ int main()
     test_list.clear();
     std::cout << test_list.size() << std::endl;
 
-    std::cout << "Iterator testing:" << std::endl;
+    std::cout << "Iterator/assignment overload testing:" << std::endl;
     //test iterator:
     test_list.addLast(1);
     test_list.addLast(2);
@@ -26,11 +26,15 @@ int main()
     test_list.addLast(4);
     test_list.addLast(5);
     test_list.addLast(6);
-    LinkedList<int>::LinkedListIterator it = test_list.begin();
-    for (it = test_list.begin(); it != test_list.end(); ++it) {
+
+    LinkedList<int> test_list2;
+    test_list2 = test_list;
+    for (LinkedList<int>::Iterator it = test_list2.begin(); it != test_list2.end(); ++it) {
         std::cout << *it << std::endl;
     }
 }
+
+
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu
 // Debug program: F5 or Debug > Start Debugging menu

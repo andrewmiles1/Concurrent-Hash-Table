@@ -23,7 +23,7 @@ int old_main() {
     test_list.addLast(4);
     test_list.addLast(5);
     test_list.addLast(6);
-    LinkedList<int>::LinkedListIterator it = test_list.begin();
+    LinkedList<int>::Iterator it = test_list.begin();
     for(it = test_list.begin(); it != test_list.end(); ++it){
         std::cout << *it << std::endl;
     }

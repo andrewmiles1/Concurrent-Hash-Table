@@ -140,6 +140,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="DataPoint.cpp" />
+    <ClCompile Include="LinkedList_Test.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MultithreadedHashing_CaseStudy.cpp" />
   </ItemGroup>
