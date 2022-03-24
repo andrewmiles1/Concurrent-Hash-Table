@@ -3,35 +3,12 @@
 
 #include <iostream>
 #include "LinkedList.h"
+#include "Tester_LinkedList.h"
 
 int main()
 {
     //test linked list add last and size:
-    LinkedList<int> test_list;
-    test_list.addLast(5);
-    test_list.addLast(4);
-    test_list.addLast(8);
-    test_list.addLast(4);
-    test_list.addLast(5);
-    test_list.addLast(6);
-    std::cout << test_list.size() << std::endl;
-    test_list.clear();
-    std::cout << test_list.size() << std::endl;
-
-    std::cout << "Iterator/assignment overload testing:" << std::endl;
-    //test iterator:
-    test_list.addLast(1);
-    test_list.addLast(2);
-    test_list.addLast(3);
-    test_list.addLast(4);
-    test_list.addLast(5);
-    test_list.addLast(6);
-
-    LinkedList<int> test_list2;
-    test_list2 = test_list;
-    for (LinkedList<int>::Iterator it = test_list2.begin(); it != test_list2.end(); ++it) {
-        std::cout << *it << std::endl;
-    }
+    TestLinkedList();
 }
 
 

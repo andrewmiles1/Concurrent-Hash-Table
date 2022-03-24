@@ -207,9 +207,15 @@ T LinkedList<T>::remove(T remove_me) {
     return NULL;
 }
 
+//Search for passed item in list.
 template<class T>
 bool LinkedList<T>::find(T find_me) {
-
+    for (Iterator it = begin(); it != end(); it++) {//iterate through list.
+        if (*it == find_me) {//if value is what we're looking for,
+            return true;//return true
+        }
+    }
+    return false;//if we got here, we never found it.
 }
 
 /*
@@ -224,7 +230,7 @@ class LinkedList<T>::Iterator {
         Iterator();
         Iterator(node<T>* node) { ref_node = node; }; //copy assignment operator
         Iterator& operator++();
-        Iterator operator++(int amt) { Iterator temp_it = *this; ++(this); return temp_it; };//untested
+        Iterator operator++(int amt) { Iterator temp_it = *this; ref_node = ref_node->next; return temp_it; };//untested
         T operator*() { return ref_node->data; };
         bool operator==(Iterator other) { return other.ref_node == ref_node; };
         bool operator!=(Iterator other) { return other.ref_node != ref_node; };
