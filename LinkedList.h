@@ -155,7 +155,7 @@ void LinkedList<T>::addFirst(T new_data){
 //remove last and return it
 template <class T>
 T LinkedList<T>::removeLast() {
-    if (head = nullptr) {
+    if (head == nullptr) {
         //if list is empty do nothing, return null
         return NULL;
     }
@@ -171,7 +171,7 @@ T LinkedList<T>::removeLast() {
     }
 
     //iterate through to second to last node
-    node<T> temp_node = head;
+    node<T>* temp_node = head;
     while (temp_node->next->next != nullptr) {
         temp_node = temp_node->next;
     }
@@ -187,6 +187,11 @@ T LinkedList<T>::removeLast() {
 //remove requested node -!Returns T so I can return NULL if remove_me wasn't found in list. a search/remove all in one.
 template<class T>
 T LinkedList<T>::remove(T remove_me) {
+    //return null if empty
+    if(head == nullptr){
+        return NULL;
+    }
+    
     //check head node
     if (head->data == remove_me) {
         node<T>* delete_me = head;//get deletion reference ready
@@ -196,7 +201,7 @@ T LinkedList<T>::remove(T remove_me) {
     }
     //iterate through and find node if it exists.
     for (node<T>* temp_node = head; temp_node != nullptr; temp_node = temp_node->next) {
-        if (temp_node->next->data = remove_me) {
+        if (temp_node->next->data == remove_me) {
             node<T>* delete_me = temp_node->next;//get a deletion reference ready
             temp_node->next = temp_node->next->next;//remove existance from list
             delete delete_me;//delete
