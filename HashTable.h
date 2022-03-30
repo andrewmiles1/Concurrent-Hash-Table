@@ -9,9 +9,9 @@
 template<class T>
 class HashTable{
     private:
-        int large_prime;
-        vector<LinkedList<T>> table;
-        
+        int size;//number of items in table.
+        vector<LinkedList<T>> table;//the actual table
+        void resize_and_rehash();//too many items in table, resize!
     public:
         HashTable();
         
