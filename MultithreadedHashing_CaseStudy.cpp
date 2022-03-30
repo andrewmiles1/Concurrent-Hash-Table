@@ -3,12 +3,20 @@
 
 #include <iostream>
 #include "LinkedList.h"
+#include "HashTable.h"
 #include "Tester_LinkedList.h"
+#include <string>
+
+int parse_key(int num){
+    return num;
+}
 
 int main()
 {
     //test linked list add last and size:
-    TestLinkedList();
+    //TestLinkedList();
+
+    HashTable<int, std::string> my_table(parse_key);
 }
 
 
