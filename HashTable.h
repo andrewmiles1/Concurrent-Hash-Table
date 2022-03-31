@@ -24,9 +24,11 @@ class HashTable{
         HashTable(int (*func)(T), CollisionHandleType handle_type = CHAINING, HashType hash_type = DIVISION);
         ~HashTable();
         void addItem(T key, U item);
+        void removeItem(T key);
         unsigned int getSize();
-        void displayDiagnostic();
-        bool search(T find_key);//returns if key exists in table.
+        void displayDiagnostic(bool display_full_list = false);
+        bool search(T find_key);//returns true/false if key exists in table.
+        void clear();//clears table.
     private:
         int hash(T key);
         unsigned int size;//number of items in table.
@@ -58,6 +60,15 @@ HashTable<T, U>::~HashTable(){
 }
 
 template<class T, class U>
+int HashTable<T, U>::hash(T key){
+    //convert passed key,
+    int key_int = keyToInt(key);
+    //FIXME - should return differently based on hash type,
+    // returns division type by default.
+    return key_int % table_size;
+}
+
+template<class T, class U>
 void HashTable<T, U>::addItem(T key, U data){
     int key_index = hash(key);
     Item new_item;
@@ -69,21 +80,31 @@ void HashTable<T, U>::addItem(T key, U data){
 }
 
 template<class T, class U>
+void HashTable<T, U>::removeItem(T key){
+    int key_index = hash(key);
+    //iterate through linked list at index and remove if existing
+    for(Item it : table[key_index]){
+        if(it.myKey == key){
+            table[key_index].remove(it);//remove it haha
+        }
+    }
+}
+
+template<class T, class U>
+void HashTable<T, U>::clear(){
+    //clears list without resizing.
+    for(int i = 0; i < table_size; i++){
+        table[i].clear();
+    }
+}
+
+template<class T, class U>
 unsigned int HashTable<T, U>::getSize(){
     return size;
 }
 
 template<class T, class U>
-int HashTable<T, U>::hash(T key){
-    //convert passed key,
-    int key_int = keyToInt(key);
-    //FIXME - should return differently based on hash type,
-    // returns division type by default.
-    return key_int % table_size;
-}
-
-template<class T, class U>
-void HashTable<T, U>::displayDiagnostic(){
+void HashTable<T, U>::displayDiagnostic(bool display_full_list){
     int count = 0;
     int min_cluster = size;
     int max_cluster = 0;
@@ -106,14 +127,20 @@ void HashTable<T, U>::displayDiagnostic(){
     std::cout << "Counted size is: " << count << std::endl;
     std::cout << "Max cluster size: " << max_cluster << std::endl;
     std::cout << "Min cluster size: " << min_cluster << std::endl;  
+    if(display_full_list){
+        std::cout << "Table cells:" << std::endl;
+        for(int i = 0; i < table_size; i++){
+            std::cout << i << ": " << table[i].size() << std::endl;
+        }
+    }
 }
 
 template<class T, class U>
 bool HashTable<T, U>::search(T find_key){
     int key_index = hash(find_key);
-    for(typename LinkedList<Item>::Iterator it = table[key_index].begin(); it != table[key_index].end(); it++){
+    for(Item it : table[key_index]){
         //TODO check each item in linked list for the key.
-        if((*it).myKey == find_key){
+        if(it.myKey == find_key){
             return true;
         }
     }

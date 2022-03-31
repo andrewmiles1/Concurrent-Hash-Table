@@ -60,8 +60,8 @@ void TestLinkedList() {
 	test_list1.removeLast();
 	test_list1.removeLast();
 	std::cout << "List contains: " << std::endl;
-	for(LinkedList<int>::Iterator it = test_list1.begin(); it != test_list1.end(); it++){
-		std::cout << *it << " ";
+	for(int i : test_list1){
+		std::cout << i << " ";
 	}
 	std::cout << std::endl << "Searching for 22 should return true: " << test_list1.find(22) << std::endl;
 	std::cout << "Clearing list and removing 55 and last from empty list..." << std::endl;

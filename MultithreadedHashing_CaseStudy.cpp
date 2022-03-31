@@ -13,7 +13,7 @@ int parse_key(std::string str){
 
 int main()
 {
-    //test linked list add last and size:
+    
     //TestLinkedList();
 
     HashTable<std::string, int> my_table(&parse_key);
@@ -21,6 +21,7 @@ int main()
     my_table.displayDiagnostic();
     std::cout << "Is Andrew in the table: " << my_table.search("Andrew") << std::endl;
     std::cout << "Is Lauren in the table: " << my_table.search("Lauren") << std::endl;
+    
 }
 
 
