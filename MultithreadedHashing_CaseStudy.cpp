@@ -7,8 +7,8 @@
 #include "Tester_LinkedList.h"
 #include <string>
 
-int parse_key(int num){
-    return num;
+int parse_key(std::string str){
+    return int(str[0]) * str.length();
 }
 
 int main()
@@ -16,7 +16,11 @@ int main()
     //test linked list add last and size:
     //TestLinkedList();
 
-    HashTable<int, std::string> my_table(parse_key);
+    HashTable<std::string, int> my_table(&parse_key);
+    my_table.addItem("Andrew", 38);
+    my_table.displayDiagnostic();
+    std::cout << "Is Andrew in the table: " << my_table.search("Andrew") << std::endl;
+    std::cout << "Is Lauren in the table: " << my_table.search("Lauren") << std::endl;
 }
 
 
