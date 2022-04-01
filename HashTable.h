@@ -7,6 +7,8 @@
 #include <iostream>
 #include <math.h>
 #include <functional>
+#include <thread>
+#include <mutex>
 
 enum CollisionHandleType {OPEN_ADDRESSING, CHAINING};
 enum HashType {MULTIPLICATION, DIVISION};
@@ -18,6 +20,7 @@ class HashTable{
     struct Item {
         T myKey;
         U myData;
+        int my_mutex_index;
     };
 
     public:
@@ -34,7 +37,8 @@ class HashTable{
         unsigned int size;//number of items in table.
         unsigned int table_size;//number of cells in table
         LinkedList<Item>* table;//the actual array of linked lists
-        void resizeAndRehash();//too many items in table, resize!
+        std::mutex* mutex_array;
+        void resizeAndRehash(int new_table_size);//used when item amount is disproportionate to table size
         int (*keyToInt)(T);
         bool isPrime(int);
         CollisionHandleType myCollisionHandling;
@@ -44,10 +48,11 @@ class HashTable{
 template<class T, class U>
 HashTable<T, U>::HashTable(int (*func)(T), CollisionHandleType handleType, HashType hash_type){
     keyToInt = func;//save parsing function for hashing
-
+    //FIXME - add ability to set approximate table size. 
     //initialize our table to a prime size.
     //just set to a good default prime number 59
     table = new LinkedList<Item>[59]();
+    mutex_array = new std::mutex[59]();
     table_size = 59;
     size = 0;
 
@@ -66,6 +71,25 @@ int HashTable<T, U>::hash(T key){
     //FIXME - should return differently based on hash type,
     // returns division type by default.
     return key_int % table_size;
+}
+
+template<class T, class U>
+void HashTable<T, U>::resizeAndRehash(int new_table_size){
+    //FIXME - this should pause all threads access to table to resize safely. 
+
+    LinkedList<Item>* new_table = new LinkedList<Item>[new_table_size];
+    LinkedList<Item>* old_table = table;
+    int old_size = table_size;
+    table_size = new_table_size;
+    table = new_table;//so that hashing functions will use the new table.
+
+    for(int i = 0; i < old_size; i++){
+        Item temp_item = old_table[i];
+        addItem(temp_item.myKey, temp_item.myData);
+    }
+
+    delete old_table;//completed transition, delete old.
+
 }
 
 template<class T, class U>
@@ -88,6 +112,7 @@ void HashTable<T, U>::removeItem(T key){
             table[key_index].remove(it);//remove it haha
         }
     }
+    size--;
 }
 
 template<class T, class U>
