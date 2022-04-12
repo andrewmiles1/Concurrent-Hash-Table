@@ -9,7 +9,7 @@
           "/Zi",
           "/EHsc",
           "/Fe:",
-          "${fileDirname}\\MultithreadedHashing_CaseStudy.exe",
+          "MultithreadedHashing_CaseStudy.exe",
           "MultithreadedHashing_CaseStudy.cpp"
         ],
         "problemMatcher": ["$msCompile"],
