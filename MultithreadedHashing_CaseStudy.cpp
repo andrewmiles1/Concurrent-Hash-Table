@@ -20,7 +20,7 @@ int main()
     my_table.addItem("Andrew", 38);
     my_table.displayDiagnostic();
     std::cout << "Is Andrew in the table: " << my_table.search("Andrew") << std::endl;
-    std::cout << "Is Lauren in the table: " << my_table.search("Lauren") << std::endl;
+    //std::cout << "Is Lauren in the table: " << my_table.search("Lauren") << std::endl;
     
 }
 

@@ -20,7 +20,6 @@ class HashTable{
     struct Item {
         T myKey;
         U myData;
-        int my_mutex_index;
     };
 
     public:
@@ -37,7 +36,6 @@ class HashTable{
         unsigned int size;//number of items in table.
         unsigned int table_size;//number of cells in table
         LinkedList<Item>* table;//the actual array of linked lists
-        std::mutex* mutex_array;
         void resizeAndRehash(int new_table_size);//used when item amount is disproportionate to table size
         int (*keyToInt)(T);
         bool isPrime(int);
@@ -52,7 +50,6 @@ HashTable<T, U>::HashTable(int (*func)(T), CollisionHandleType handleType, HashT
     //initialize our table to a prime size.
     //just set to a good default prime number 59
     table = new LinkedList<Item>[59]();
-    mutex_array = new std::mutex[59]();
     table_size = 59;
     size = 0;
 
@@ -61,7 +58,7 @@ HashTable<T, U>::HashTable(int (*func)(T), CollisionHandleType handleType, HashT
 
 template<class T, class U>
 HashTable<T, U>::~HashTable(){
-    delete table;
+    delete[] table;
 }
 
 template<class T, class U>
@@ -75,7 +72,6 @@ int HashTable<T, U>::hash(T key){
 
 template<class T, class U>
 void HashTable<T, U>::resizeAndRehash(int new_table_size){
-    //FIXME - this should pause all threads access to table to resize safely. 
 
     LinkedList<Item>* new_table = new LinkedList<Item>[new_table_size];
     LinkedList<Item>* old_table = table;

@@ -7,6 +7,7 @@
         "command": "cl.exe",
         "args": [
           "/Zi",
+          "/MTd",
           "/EHsc",
           "/Fe:",
           "MultithreadedHashing_CaseStudy.exe",
