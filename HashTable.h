@@ -13,7 +13,7 @@
 enum CollisionHandleType {OPEN_ADDRESSING, CHAINING};
 enum HashType {MULTIPLICATION, DIVISION};
 
-
+//HashTable in working good state
 
 template<class T, class U>
 class HashTable{
