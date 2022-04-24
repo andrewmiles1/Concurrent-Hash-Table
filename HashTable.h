@@ -24,13 +24,13 @@ class HashTable{
 
             T myKey;
             U myData;
-            std::mutex my_mutex;
+            mutable std::mutex my_mutex;
     };
 
     public:
         HashTable(int (*func)(T), CollisionHandleType handle_type = CHAINING, HashType hash_type = DIVISION);
         ~HashTable();
-        void addItem(T key, U item);
+        void update(T key, U item);//adds/updates item
         void removeItem(T key);
         unsigned int getSize();
         void displayDiagnostic(bool display_full_list = false);
@@ -41,11 +41,13 @@ class HashTable{
         unsigned int size;//number of items in table.
         unsigned int table_size;//number of cells in table
         LinkedList<Item>* table;//the actual array of linked lists
-        void resizeAndRehash(int new_table_size);//used when item amount is disproportionate to table size
+        void resizeAndRehash();//used when item amount is disproportionate to table size
+        bool isPrime(int num);
         int (*keyToInt)(T);
-        bool isPrime(int);
         CollisionHandleType myCollisionHandling;
         HashType myHashType;
+        bool table_is_resizing;//true when table is in resizing process
+        int current_usage_count;//used to count threads using table
 };
 
 /**
@@ -66,6 +68,8 @@ HashTable<T, U>::HashTable(int (*func)(T), CollisionHandleType handleType, HashT
     table = new LinkedList<Item>[59]();
     table_size = 59;
     size = 0;
+    current_usage_count = 0;
+    table_is_resizing = false;
 
     myCollisionHandling = handleType;
 }
@@ -106,7 +110,15 @@ int HashTable<T, U>::hash(T key){
  * @param new_table_size size to shrink/expand to
  */
 template<class T, class U>
-void HashTable<T, U>::resizeAndRehash(int new_table_size){
+void HashTable<T, U>::resizeAndRehash(){
+    table_is_resizing = true;//TODO could this be a lock instead?
+    while(current_usage_count > 0);//spinning wait for table logouts
+
+    unsigned int new_table_size = table_size * 2;//multiply it by two
+    while(isPrime(new_table_size)){//and make it prime.
+        new_table_size++;
+    }
+
     LinkedList<Item>* new_table = new LinkedList<Item>[new_table_size];
     LinkedList<Item>* old_table = table;
     int old_size = table_size;
@@ -114,67 +126,131 @@ void HashTable<T, U>::resizeAndRehash(int new_table_size){
     table = new_table;//so that hashing functions will use the new table.
 
     for(int i = 0; i < old_size; i++){
-        Item temp_item = old_table[i];
-        addItem(temp_item.myKey, temp_item.myData);
+        //iterate through list at i
+        for(Item it: old_table[i]){
+            Item temp_item = it;
+            int key_int = hash(temp_item.myKey);
+            table[key_int].addLast(temp_item);
+        }
     }
-
     delete old_table;//completed transition, delete old.
 
+    table_is_resizing = false;
 }
 
 /**
- * @brief Adds item to hash table
+ * @brief returns if num is prime or not
+ * 
+ * @param num integer to test if prime
+ * @return if num is prime
+ */
+template<class T, class U>
+bool HashTable<T, U>::isPrime(int num){
+    float num_sqrt = std::sqrt(num);
+    if(num < 2 || (!(num&1) && num != 2))
+        return true;
+    for(int i=3; i<=num_sqrt; i+=2){
+        if(!(num % i))
+            return true;
+    }
+    return false;
+}
+
+/**
+ * @brief updates item if it already exists, adds it if it doesn't.
  * 
  * @tparam T key type
  * @tparam U value type
- * @param key item's key 
- * @param data item's data
+ * @param key item's key
+ * @param data item's new value
  */
 template<class T, class U>
-void HashTable<T, U>::addItem(T key, U data){
+void HashTable<T, U>::update(T key, U data){
+    while(table_is_resizing);//spinning wait until done
+    current_usage_count++;//log current table usage
+
     int key_index = hash(key);
+    //look to see if item already exists
+    for(Item it : table[key_index]){
+        if(it.myKey == key){//if key already exists in table
+            //lock access to item
+            std::unique_lock<std::mutex> update_lock(it.my_mutex);
+            //update data
+            it.myData = data;
+            //retrn and unlock
+            current_usage_count--;
+            return;
+        }
+    }
+    //reached here, it doesn't exist.
+    //ADD NEW ITEM - since it doesn't exist in the table
     Item new_item;
-    new_item.myKey = key;
+    std::unique_lock<std::mutex> new_item_lock(new_item.my_mutex);
     new_item.myData = data;
-    //insert into linked list at key_index
+    new_item.myKey = key;
     table[key_index].addLast(new_item);
-    size++;
+    size++;//increment size
+
+    current_usage_count--;//decrement usage count.
+
+    //check table size to see if it's too big and needs resizing.
+    if(size / table_size > 0.75){//if table load factor is too high
+        resizeAndRehash();
+    }
+
+   
 }
 
 /**
  * @brief Removes item from HashTable. if Item doesn't exist in table, nothing happens.
+ * DISABLED - not thread safe, need a better system so that
+ *            I don't delete item while it's lock. I don't
+ *            really need this feature for my project anyways.
  * 
  * @tparam T key type
  * @tparam U value type
  * @param key item to be deleted's key
  */
-template<class T, class U>
-void HashTable<T, U>::removeItem(T key){
-    int key_index = hash(key);
-    //iterate through linked list at index and remove if existing
-    for(Item it : table[key_index]){
-        if(it.myKey == key){
-            table[key_index].remove(it);//remove it haha
-            size--;
-        }
-    }
+// template<class T, class U>
+// void HashTable<T, U>::removeItem(T key){
+//     while(table_is_resizing);//spinning wait until table isn't resizing anymore.
+//     current_usage_count++;//increment current usage
+
+//     int key_index = hash(key);
+//     //iterate through linked list at index and remove if existing
+//     for(Item it : table[key_index]){
+//         if(it.myKey == key){
+//             table[key_index].remove(it);//remove it haha
+//             size--;
+//         }
+//     }
     
-}
+//     current_usage_count--;
+// }
 
 /**
- * @brief empties list of all items. sets table to default size 59
+ * @brief empties list of all items. does not resize.
+ *  DISABLED - function need needed for project, not thread safe
+ *              as a better solution for deleting locked objects
+ *              is needed to avoid undefined behavior. 
  * 
  * @tparam T key type
  * @tparam U value type
  */
-template<class T, class U>
-void HashTable<T, U>::clear(){
-    //TODO resize table to 59 or a default size
-    //clears list without resizing.
-    for(int i = 0; i < table_size; i++){
-        table[i].clear();
-    }
-}
+// template<class T, class U>
+// void HashTable<T, U>::clear(){
+//     //TODO resize table to 59 or a default size
+//     //TODO lock full table before resizing.
+//     while(table_is_resizing);//wait until not resizing if we are
+//     current_usage_count++;//log current table usage
+
+//     //clears list without resizing.
+//     for(int i = 0; i < table_size; i++){
+//         table[i].clear();
+//     }
+
+//     current_usage_count--;
+// }
 
 /**
  * @brief returns number of items in the hash table
@@ -270,8 +346,8 @@ HashTable<T, U>::Item::~Item(){
  */
 template<class T, class U>
 HashTable<T, U>::Item::Item(const Item& other){
-    std::unique_lock other_lock(other.my_mutex);
-    std::unique_lock this_lock(my_mutex);
+    std::unique_lock<std::mutex> other_lock(other.my_mutex);
+    std::unique_lock<std::mutex> this_lock(my_mutex);
 
     myData = other.myData;
     myKey = other.myKey;
@@ -286,11 +362,11 @@ HashTable<T, U>::Item::Item(const Item& other){
  * @return HashTable<T, U>::Item& freshly copied to item
  */
 template<class T, class U>
-HashTable<T, U>::Item& HashTable<T, U>::Item::operator=(const Item& other){
-    std::unique_lock other_lock(other.my_mutex);
-    std::unique_lock this_lock(my_mutex);
+typename HashTable<T, U>::Item& HashTable<T, U>::Item::operator=(const Item& other){
+    std::unique_lock<std::mutex> other_lock(other.my_mutex);
+    std::unique_lock<std::mutex> this_lock(my_mutex);
 
     myData = other.myData;
     myKey = other.myKey;
-    return this;
+    return *this;
 }
