@@ -15,14 +15,20 @@ int parse_string_key(std::string str){
 void TestHashTable(){
     //constructor and update testing
     std::cout << "=================HashTable Testing================" << std::endl;
-    std::cout << "==Constructor and Update testing:"
-    HashTable<std::string, int> my_table(&parse_string_key, MULTIPLICATION);
-    my_table.update("Andrew", 38);
-    my_table.displayDiagnostic();
-    std::cout << "Is Andrew in the table: " << my_table.search("Andrew") << std::endl;
-    std::cout << "Is Lauren in the table: " << my_table.search("Lauren") << std::endl;
+    std::cout << "==Constructor and Update testing" << std::endl;
+    HashTable<std::string, int> test_table(&parse_string_key, MULTIPLICATION);
+    HashTable<std::string, int> empty_table(&parse_string_key, MULTIPLICATION);
+    test_table.update("Andrew", 38);
+    test_table.displayDiagnostic();
+    std::cout << "Is Andrew in the table: " << test_table.search("Andrew") << std::endl;
+    std::cout << "Is Lauren in the table: " << test_table.search("Lauren") << std::endl;
     for(int i = 0; i < 100; i++){
-        my_table.update(std::to_string(i+64), i);
+        test_table.update(std::to_string(i+64), i);
     }
-    my_table.displayDiagnostic();
+    test_table.displayDiagnostic();
+
+    std::cout << "==Diagnostic of empty table:" << std::endl;
+    empty_table.displayDiagnostic();
+
+    std::cout << "=="
 }

@@ -30,11 +30,11 @@ class HashTable{
         HashTable(int (*func)(T), HashType hash_type = DIVISION);
         ~HashTable();
         void update(T key, U item);//adds/updates item
-        void removeItem(T key);
+        //void removeItem(T key);
         unsigned int getSize();
         void displayDiagnostic(bool display_full_list = false);
         bool search(T find_key);//returns true/false if key exists in table.
-        void clear();//clears table.
+        //void clear();//clears table.
     private:
         int hash(T key);
         double fractionalPart(double num);
