@@ -10,7 +10,6 @@
 #include <thread>
 #include <mutex>
 
-enum CollisionHandleType {OPEN_ADDRESSING, CHAINING};
 enum HashType {MULTIPLICATION, DIVISION};
 
 
@@ -24,11 +23,11 @@ class HashTable{
 
             T myKey;
             U myData;
-            mutable std::mutex my_mutex;
+            mutable std::recursive_mutex my_mutex;
     };
 
     public:
-        HashTable(int (*func)(T), CollisionHandleType handle_type = CHAINING, HashType hash_type = DIVISION);
+        HashTable(int (*func)(T), HashType hash_type = DIVISION);
         ~HashTable();
         void update(T key, U item);//adds/updates item
         void removeItem(T key);
@@ -38,16 +37,17 @@ class HashTable{
         void clear();//clears table.
     private:
         int hash(T key);
+        double fractionalPart(double num);
         unsigned int size;//number of items in table.
         unsigned int table_size;//number of cells in table
         LinkedList<Item>* table;//the actual array of linked lists
         void resizeAndRehash();//used when item amount is disproportionate to table size
         bool isPrime(int num);
         int (*keyToInt)(T);
-        CollisionHandleType myCollisionHandling;
         HashType myHashType;
         bool table_is_resizing;//true when table is in resizing process
         int current_usage_count;//used to count threads using table
+        double const MULT_CONST = 0.618033;
 };
 
 /**
@@ -60,7 +60,7 @@ class HashTable{
  * @param hash_type how should hash be calculated from key in int form. MULTIPLICATION or DIVISION
  */
 template<class T, class U>
-HashTable<T, U>::HashTable(int (*func)(T), CollisionHandleType handleType, HashType hash_type){
+HashTable<T, U>::HashTable(int (*func)(T), HashType hash_type){
     keyToInt = func;//save parsing function for hashing
     //FIXME - add ability to set approximate table size. (this requires overloading)
     //initialize our table to a prime size.
@@ -70,8 +70,6 @@ HashTable<T, U>::HashTable(int (*func)(T), CollisionHandleType handleType, HashT
     size = 0;
     current_usage_count = 0;
     table_is_resizing = false;
-
-    myCollisionHandling = handleType;
 }
 
 /**
@@ -99,7 +97,17 @@ int HashTable<T, U>::hash(T key){
     int key_int = keyToInt(key);
     //FIXME - should return differently based on hash type,
     // returns division type by default.
-    return key_int % table_size;
+    if(myHashType == DIVISION){
+        return key_int % table_size;
+    }
+    else{// if myHashType == MULTIPLICATION
+        return std::floor(table_size * (fractionalPart(MULT_CONST * double(key_int))));
+    }
+}
+
+template<class T, class U>
+double HashTable<T, U>::fractionalPart(double num){
+    return num - int(num);
 }
 
 /**
@@ -133,7 +141,7 @@ void HashTable<T, U>::resizeAndRehash(){
             table[key_int].addLast(temp_item);
         }
     }
-    delete old_table;//completed transition, delete old.
+    delete[] old_table;//completed transition, delete old.
 
     table_is_resizing = false;
 }
@@ -174,7 +182,7 @@ void HashTable<T, U>::update(T key, U data){
     for(Item it : table[key_index]){
         if(it.myKey == key){//if key already exists in table
             //lock access to item
-            std::unique_lock<std::mutex> update_lock(it.my_mutex);
+            std::unique_lock<std::recursive_mutex> update_lock(it.my_mutex);
             //update data
             it.myData = data;
             //retrn and unlock
@@ -185,7 +193,7 @@ void HashTable<T, U>::update(T key, U data){
     //reached here, it doesn't exist.
     //ADD NEW ITEM - since it doesn't exist in the table
     Item new_item;
-    std::unique_lock<std::mutex> new_item_lock(new_item.my_mutex);
+    std::unique_lock<std::recursive_mutex> new_item_lock(new_item.my_mutex);
     new_item.myData = data;
     new_item.myKey = key;
     table[key_index].addLast(new_item);
@@ -346,8 +354,8 @@ HashTable<T, U>::Item::~Item(){
  */
 template<class T, class U>
 HashTable<T, U>::Item::Item(const Item& other){
-    std::unique_lock<std::mutex> other_lock(other.my_mutex);
-    std::unique_lock<std::mutex> this_lock(my_mutex);
+    std::unique_lock<std::recursive_mutex> other_lock(other.my_mutex);
+    std::unique_lock<std::recursive_mutex> this_lock(my_mutex);
 
     myData = other.myData;
     myKey = other.myKey;
@@ -363,8 +371,8 @@ HashTable<T, U>::Item::Item(const Item& other){
  */
 template<class T, class U>
 typename HashTable<T, U>::Item& HashTable<T, U>::Item::operator=(const Item& other){
-    std::unique_lock<std::mutex> other_lock(other.my_mutex);
-    std::unique_lock<std::mutex> this_lock(my_mutex);
+    std::unique_lock<std::recursive_mutex> other_lock(other.my_mutex);
+    std::unique_lock<std::recursive_mutex> this_lock(my_mutex);
 
     myData = other.myData;
     myKey = other.myKey;
