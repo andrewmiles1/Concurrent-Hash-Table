@@ -4,12 +4,12 @@
 #pragma once
 
 #include <iostream>
-
+#include <memory>
 
 template <class T>
 struct node{
     T data;
-    node* next;
+    std::shared_ptr<node<T>> next;
 };
 
 template<class T>
@@ -32,7 +32,8 @@ class LinkedList{
         int size();
         void clear();
     private:   
-        node<T>* head;//first node
+        //node<T>* head;//first node
+        std::shared_ptr<node<T>> head;
 };
 
 
@@ -54,7 +55,7 @@ template<class T>
 LinkedList<T>::LinkedList(const LinkedList& copy_list) {
 
     //iterate through copy list and deep copy it into this
-    for (node<T>* temp_node = copy_list.head; temp_node != nullptr; temp_node = temp_node->next) {
+    for (std::shared_ptr<node<T>> temp_node = copy_list.head; temp_node != nullptr; temp_node = temp_node->next) {
         this->addLast(temp_node->data);
     }
     
@@ -76,7 +77,7 @@ LinkedList<T>& LinkedList<T>::operator=(const LinkedList& rhs) {
     clear();//clear my current list.
 
     //deep copy each node from rhs
-    for (node<T>* temp_node = rhs.head; temp_node != nullptr; temp_node = temp_node->next) {
+    for (std::shared_ptr<node<T>> temp_node = rhs.head; temp_node != nullptr; temp_node = temp_node->next) {
         this->addLast(temp_node->data);
     }
     //return me for chaining assignments
@@ -87,12 +88,13 @@ LinkedList<T>& LinkedList<T>::operator=(const LinkedList& rhs) {
 //clear the entire list
 template<class T>
 void LinkedList<T>::clear(){
-    node<T>* delete_me;
+    std::shared_ptr<node<T>> delete_me;
 
     while(head != nullptr){
         delete_me = head;//set to current head
         head = head->next;//move head to next or nullptr
-        delete delete_me;//delete old head.
+        delete_me.reset();
+        //delete delete_me;//delete old head.
     }
 }
 
@@ -102,7 +104,7 @@ int LinkedList<T>::size(){
     
     //define some helper variables
     int count = 0;
-    node<T>* count_node;
+    std::shared_ptr<node<T>> count_node;
     count_node = head;
     
     //iterate and count.
@@ -120,7 +122,7 @@ template <class T>
 void LinkedList<T>::addLast(T new_data){
     
     //create node to add into list:
-    node<T>* new_node = new node<T>();
+    std::shared_ptr<node<T>> new_node = std::make_shared<node<T>>();//new node<T>();
     new_node->data = new_data;
     new_node->next = nullptr;
     
@@ -132,7 +134,7 @@ void LinkedList<T>::addLast(T new_data){
     
     
     //if head node exists, then iterate through and add at end:
-    node<T>* iter_node = head;//iterating node
+    std::shared_ptr<node<T>> iter_node = head;//iterating node
     while(iter_node->next != nullptr){//check if next node exists
         iter_node = iter_node->next;
     }
@@ -144,7 +146,7 @@ void LinkedList<T>::addLast(T new_data){
 template <class T>
 void LinkedList<T>::addFirst(T new_data){
     //create new node to add to list
-    node<T>* new_node = new node<T>();
+    std::shared_ptr<node<T>> new_node = std::make_shared<node<T>>();//new node<T>();
     //populate data into new node
     new_node->data = new_data;
     new_node->next = head;
@@ -165,21 +167,23 @@ T LinkedList<T>::removeLast() {
     //is head last
     if (head->next == nullptr) {
         temp_data = head->data;
-        delete head;
-        head = nullptr;
+        head.reset();
+        //delete head;
+        //head = nullptr;
         return temp_data;
     }
 
     //iterate through to second to last node
-    node<T>* temp_node = head;
+    std::shared_ptr<node<T>> temp_node = head;
     while (temp_node->next->next != nullptr) {
         temp_node = temp_node->next;
     }
 
     //save the emd node's data to return, and destroy end node.
     temp_data = temp_node->next->data;
-    delete temp_node->next;
-    temp_node->next = nullptr;
+    temp_node.reset();
+    //delete temp_node->next;
+    //temp_node->next = nullptr;
     return temp_data;
 
 }
@@ -194,17 +198,17 @@ T LinkedList<T>::remove(T remove_me) {
     
     //check head node
     if (head->data == remove_me) {
-        node<T>* delete_me = head;//get deletion reference ready
+        std::shared_ptr<node<T>> delete_me = head;//get deletion reference ready
         head = head->next;//remove existance from list
-        delete delete_me;//delete
+        //delete delete_me;//deletes itself when out of scope.
         return remove_me;
     }
     //iterate through and find node if it exists.
-    for (node<T>* temp_node = head; temp_node != nullptr; temp_node = temp_node->next) {
+    for (std::shared_ptr<node<T>> temp_node = head; temp_node != nullptr; temp_node = temp_node->next) {
         if (temp_node->next->data == remove_me) {
-            node<T>* delete_me = temp_node->next;//get a deletion reference ready
+            std::shared_ptr<node<T>> delete_me = temp_node->next;//get a deletion reference ready
             temp_node->next = temp_node->next->next;//remove existance from list
-            delete delete_me;//delete
+            //delete delete_me;//deletes itself when out of scope
             return remove_me;
         }
     }
@@ -230,10 +234,10 @@ bool LinkedList<T>::find(T find_me) {
 */
 template<class T>
 class LinkedList<T>::Iterator {
-        node<T>* ref_node;
+        std::shared_ptr<node<T>> ref_node;
     public:
         Iterator();
-        Iterator(node<T>* node) { ref_node = node; }; //copy assignment operator
+        Iterator(std::shared_ptr<node<T>> node) { ref_node = node; }; //copy assignment operator
         Iterator& operator++();
         Iterator operator++(int amt) { Iterator temp_it = *this; ref_node = ref_node->next; return temp_it; };//untested
         T operator*() { return ref_node->data; };
