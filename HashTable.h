@@ -301,6 +301,7 @@ void HashTable<T, U>::displayDiagnostic(bool display_full_list){
             }
         }
     }
+    std::cout << "**HashTable Diagnostic**" << std::endl;
     std::cout << "listed size is: " << size << std::endl;
     std::cout << "Counted size is: " << count << std::endl;
     std::cout << "Max cluster size: " << max_cluster << std::endl;
@@ -311,6 +312,7 @@ void HashTable<T, U>::displayDiagnostic(bool display_full_list){
             std::cout << i << ": " << table[i].size() << std::endl;
         }
     }
+    std::cout << "**End Diagnostic**" << std::endl;
 }
 
 /**

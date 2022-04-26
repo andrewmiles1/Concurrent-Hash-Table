@@ -22,6 +22,7 @@ void TestHashTable(){
     test_table.displayDiagnostic();
     std::cout << "Is Andrew in the table: " << test_table.search("Andrew") << std::endl;
     std::cout << "Is Lauren in the table: " << test_table.search("Lauren") << std::endl;
+    std::cout << "Adding 100 strings to table..." << std::endl;
     for(int i = 0; i < 100; i++){
         test_table.update(std::to_string(i+64), i);
     }
@@ -30,5 +31,6 @@ void TestHashTable(){
     std::cout << "==Diagnostic of empty table:" << std::endl;
     empty_table.displayDiagnostic();
 
-    std::cout << "=="
+    std::cout << "==Search in an empty table:" << std::endl;
+    std::cout << "is Fake in the table: " << empty_table.search("Fake") << std::endl;
 }
