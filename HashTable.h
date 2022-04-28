@@ -17,9 +17,12 @@ template<class T, class U>
 class HashTable{
     struct Item {
             Item();
-            Item(const Item& other);
+            Item(const Item& other);//copy constructor
+            Item(Item&& other);//move constructor
+            Item(T key, U data);
             ~Item();
-            Item& operator=(const Item& other);
+            Item& operator=(const Item& other) ;//copy assignment operator
+            Item& operator=(Item&& other) noexcept;//move assignment operator
 
             T myKey;
             U myData;
@@ -192,11 +195,7 @@ void HashTable<T, U>::update(T key, U data){
     }
     //reached here, it doesn't exist.
     //ADD NEW ITEM - since it doesn't exist in the table
-    Item new_item;
-    std::unique_lock<std::recursive_mutex> new_item_lock(new_item.my_mutex);
-    new_item.myData = data;
-    new_item.myKey = key;
-    table[key_index].addLast(new_item);
+    table[key_index].addLast(Item(key, data));
     size++;//increment size
 
     current_usage_count--;//decrement usage count.
@@ -343,6 +342,10 @@ HashTable<T, U>::Item::Item(){
 }
 
 template<class T, class U>
+HashTable<T, U>::Item::Item(T key, U data)
+:myKey{key}, myData{data}{}
+
+template<class T, class U>
 HashTable<T, U>::Item::~Item(){
     //maybe something has to happen here with mutex?
 }
@@ -364,6 +367,22 @@ HashTable<T, U>::Item::Item(const Item& other){
 }
 
 /**
+ * @brief move-constructor
+ * 
+ * @tparam T key type
+ * @tparam U value type
+ * @param other object to move from
+ */
+template<class T, class U>
+HashTable<T, U>::Item::Item(Item&& other){
+    std::unique_lock<std::recursive_mutex> other_lock(other.my_mutex);
+    std::unique_lock<std::recursive_mutex> this_lock(my_mutex);
+
+    myData = std::move(other.myData);
+    myKey = std::move(other.myKey);
+}
+
+/**
  * @brief copy details of other item to mine
  * 
  * @tparam T key type
@@ -373,10 +392,36 @@ HashTable<T, U>::Item::Item(const Item& other){
  */
 template<class T, class U>
 typename HashTable<T, U>::Item& HashTable<T, U>::Item::operator=(const Item& other){
+    if(this == &other){
+        return *this;//prevent self assignment
+    }
+
     std::unique_lock<std::recursive_mutex> other_lock(other.my_mutex);
     std::unique_lock<std::recursive_mutex> this_lock(my_mutex);
 
     myData = other.myData;
     myKey = other.myKey;
+    return *this;
+}
+
+/**
+ * @brief move assignment overload
+ * 
+ * @tparam T key type
+ * @tparam U value type
+ * @param other item to move from
+ * @return HashTable<T, U>::Item& freshly moved item
+ */
+template<class T, class U>
+typename HashTable<T, U>::Item& HashTable<T, U>::Item::operator=(Item&& other) noexcept{
+    if(this == &other){
+        return;//prevent self assignment
+    }
+
+    std::unique_lock<std::recursive_mutex> other_lock(other.my_mutex);
+    std::unique_lock<std::recursive_mutex> this_lock(my_mutex);
+
+    myData = std::move(other.myData);
+    myKey = std::move(other.myData);
     return *this;
 }
