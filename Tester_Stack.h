@@ -3,6 +3,8 @@
 #include <iostream>
 #include "Stack.h"
 
+using namespace andrewmiles2;
+
 void TestStack(){
     std::cout << "================Stack Testing==================" << std::endl;
     std::cout << "==Creating empty and non-empty stack size 100...\n";

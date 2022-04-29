@@ -3,6 +3,8 @@
 #include "LinkedList.h"
 #include <iostream>
 
+using namespace andrewmiles2;
+
 //normal case, large case, shouldn't work (opt), edge case
 
 void TestLinkedList() {
@@ -18,6 +20,12 @@ void TestLinkedList() {
 	test_list1.addFirst(0);
 	test_list1.addLast(2);
 	test_list1.addLast(3);
+
+	std::cout << "Iterating with .at() function:\n";
+	for(int i = 0; i < test_list1.size(); i++){
+		std::cout << test_list1.at(i) << ", ";
+	}
+	std::cout << std::endl;
 
 
 	std::cout << "List contains: ";

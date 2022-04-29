@@ -15,6 +15,6 @@ int main()
     //TestHashTable();
     //TestLinkedList();
     //TestStack();
-    TestConcurrency();
+    //TestConcurrency();
 
 }

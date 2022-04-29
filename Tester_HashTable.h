@@ -3,6 +3,7 @@
 #include <iostream>
 #include "HashTable.h"
 #include <string>
+using namespace andrewmiles2;
 
 int parse_string_key(std::string str){
     int sum = 0;
@@ -21,6 +22,7 @@ void TestHashTable(){
     test_table.update("Andrew", 38);
     test_table.displayDiagnostic();
     std::cout << "Is Andrew in the table: " << test_table.search("Andrew") << std::endl;
+    std::cout << "Andrew's number: " << test_table.get("Andrew") << std::endl;
     std::cout << "Is Lauren in the table: " << test_table.search("Lauren") << std::endl;
     std::cout << "Adding 100 strings to table..." << std::endl;
     for(int i = 0; i < 100; i++){
